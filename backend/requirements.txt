@@ -1,0 +1,4 @@
+flask
+pymilvus
+psycopg2-binary
+redis
