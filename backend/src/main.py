@@ -33,6 +33,18 @@ class Knowledgebase(db.Model):
     content = db.Column(db.JSON, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Conversation(db.Model):
+    __tablename__ = 'conversations'
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id', ondelete='CASCADE'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    revision_id = db.Column(db.Integer, default=0)
+    original_message = db.Column(db.Text, nullable=True)
+    updated_message = db.Column(db.Text, nullable=True)
+    updated_at = db.Column(db.DateTime, nullable=True)
+
+
 # Create project
 @app.route('/projects', methods=['POST'])
 def create_project():
@@ -220,6 +232,57 @@ def upload_file(project_id):
         "file_path": file_path
     }), 201
 
+@app.route('/conversations', methods=['POST'])
+def create_conversation():
+    data = request.json
+    new_conversation = Conversation(
+        project_id=data['project_id'],
+        message=data['message']
+    )
+    db.session.add(new_conversation)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Conversation created",
+        "conversation_id": new_conversation.id,
+        "project_id": new_conversation.project_id,
+        "content": new_conversation.message,
+        "created_at": new_conversation.created_at
+    }), 201
+
+
+@app.route('/conversations/<int:conversation_id>', methods=['PUT'])
+def edit_conversation(conversation_id):
+    conversation = Conversation.query.get_or_404(conversation_id)
+    data = request.json
+
+    # Save the original message for tracking
+    if not conversation.original_message:
+        conversation.original_message = conversation.message
+    conversation.updated_message = data.get('updated_message', conversation.updated_message)
+    conversation.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({
+        "message": "Conversation updated",
+        "conversation_id": conversation.id,
+        "original_message": conversation.original_message,
+        "updated_message": conversation.updated_message,
+        "updated_at": conversation.updated_at
+    }), 200
+
+@app.route('/conversations/<int:conversation_id>', methods=['GET'])
+def get_conversation(conversation_id):
+    conversation = Conversation.query.get_or_404(conversation_id)
+    return jsonify({
+        "conversation_id": conversation.id,
+        "project_id": conversation.project_id,
+        "original_message": conversation.original_message,
+        "updated_message": conversation.updated_message,
+        "message": conversation.message,
+        "created_at": conversation.created_at,
+        "updated_at": conversation.updated_at
+    }), 200
 
 
 if __name__ == '__main__':
