@@ -7,6 +7,10 @@ import shutil
 import csv
 from io import StringIO
 import requests
+import PyPDF2
+from pytesseract import image_to_string
+from PIL import Image
+import magic
 
 # Load environment variables
 load_dotenv()
@@ -272,27 +276,35 @@ def export_knowledgebase():
         200,
     )
 
-
+#upload file
 @app.route("/projects/<int:project_id>/upload", methods=["POST"])
 def upload_file(project_id):
     project = Project.query.get_or_404(project_id)
     file = request.files["file"]
     file_name = file.filename
 
-    # AI-driven folder recommendation (basic example based on metadata)
+    # Save the file
     folder_recommendation = "general"
-    if "code" in file_name.lower():
-        folder_recommendation = "code"
-    elif "report" in file_name.lower():
-        folder_recommendation = "reports"
-
-    # Create folder if it doesn't exist
     project_dir = f"project-workspaces/{project_id}/{folder_recommendation}"
     os.makedirs(project_dir, exist_ok=True)
-
-    # Save the file
     file_path = os.path.join(project_dir, file_name)
     file.save(file_path)
+
+    # Skip file analysis temporarily
+    extracted_content = "File analysis skipped for debugging."
+
+    # Save placeholder metadata to the database
+    knowledge_entry = Knowledgebase(
+        project_id=project.id,
+        content_type="file",
+        content={
+            "file_name": file_name,
+            "file_type": "unknown",
+            "extracted_content": extracted_content,
+        },
+    )
+    db.session.add(knowledge_entry)
+    db.session.commit()
 
     return (
         jsonify(
@@ -304,6 +316,7 @@ def upload_file(project_id):
         ),
         201,
     )
+
 
 
 @app.route("/conversations", methods=["POST"])
@@ -416,27 +429,29 @@ def generate_ai_response(project_id, user_message):
     return response.json()
 
 
-@app.route('/projects/<int:project_id>/suggestions', methods=['POST'])
+@app.route("/projects/<int:project_id>/suggestions", methods=["POST"])
 def get_contextual_suggestions(project_id):
     data = request.json
     user_message = data.get("message", "")
     suggestions = generate_ai_response(project_id, user_message)
 
     if "error" in suggestions:
-        return jsonify({"message": "Error generating suggestions", "error": suggestions["error"]}), 500
+        return (
+            jsonify(
+                {
+                    "message": "Error generating suggestions",
+                    "error": suggestions["error"],
+                }
+            ),
+            500,
+        )
 
-    return jsonify({
-        "message": "Suggestions generated",
-        "suggestions": suggestions
-    }), 200
+    return (
+        jsonify({"message": "Suggestions generated", "suggestions": suggestions}),
+        200,
+    )
 
 if __name__ == "__main__":
-    # Mock data for testing
-    mock_project_id = 2  # Replace with a valid project ID
-    mock_user_message = "How can I organize my project files?"
+    app.run(debug=True, port=5000)
 
-    # Test the AI response
-    with app.app_context():
-        result = generate_ai_response(mock_project_id, mock_user_message)
-        print(result)
-    app.run(debug=True, port=5001)
+
