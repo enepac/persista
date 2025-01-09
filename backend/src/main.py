@@ -193,5 +193,34 @@ def export_knowledgebase():
     } for entry in entries]), 200
 
 
+@app.route('/projects/<int:project_id>/upload', methods=['POST'])
+def upload_file(project_id):
+    project = Project.query.get_or_404(project_id)
+    file = request.files['file']
+    file_name = file.filename
+
+    # AI-driven folder recommendation (basic example based on metadata)
+    folder_recommendation = "general"
+    if "code" in file_name.lower():
+        folder_recommendation = "code"
+    elif "report" in file_name.lower():
+        folder_recommendation = "reports"
+
+    # Create folder if it doesn't exist
+    project_dir = f"project-workspaces/{project_id}/{folder_recommendation}"
+    os.makedirs(project_dir, exist_ok=True)
+
+    # Save the file
+    file_path = os.path.join(project_dir, file_name)
+    file.save(file_path)
+
+    return jsonify({
+        "message": "File uploaded successfully",
+        "recommended_folder": folder_recommendation,
+        "file_path": file_path
+    }), 201
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
