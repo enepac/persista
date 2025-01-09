@@ -43,11 +43,25 @@ def create_project():
     db.session.add(new_project)
     db.session.commit()
 
+    # Add to knowledgebase
+    entry = Knowledgebase(
+        project_id=new_project.id,
+        content_type='summary',
+        content={
+            "name": new_project.name,
+            "metadata": new_project.additional_metadata,
+            "project_data": new_project.project_data
+        }
+    )
+    db.session.add(entry)
+    db.session.commit()
+
     # Create directory for the new project
     project_dir = f"project-workspaces/{new_project.id}"
     os.makedirs(project_dir, exist_ok=True)
 
     return jsonify({"message": "Project created", "project_id": new_project.id}), 201
+
 
 # Get all projects
 @app.route('/projects', methods=['GET'])
@@ -82,7 +96,19 @@ def update_project(project_id):
     project.project_data = data.get('project_data', project.project_data)
     project.additional_metadata = data.get('additional_metadata', project.additional_metadata)
     db.session.commit()
+
+    # Update knowledgebase
+    entry = Knowledgebase.query.filter_by(project_id=project.id, content_type='summary').first()
+    if entry:
+        entry.content = {
+            "name": project.name,
+            "metadata": project.additional_metadata,
+            "project_data": project.project_data
+        }
+        db.session.commit()
+
     return jsonify({"message": "Project updated"}), 200
+
 
 # Delete a project
 @app.route('/projects/<int:project_id>', methods=['DELETE'])
@@ -114,6 +140,27 @@ def populate_knowledgebase():
         db.session.add(entry)
     db.session.commit()
     return jsonify({"message": "Knowledgebase populated"}), 201
+
+@app.route('/knowledgebase/search', methods=['GET'])
+def search_knowledgebase():
+    filters = request.args
+    query = Knowledgebase.query
+
+    if 'content_type' in filters:
+        query = query.filter_by(content_type=filters['content_type'])
+
+    if 'project_id' in filters:
+        query = query.filter_by(project_id=filters['project_id'])
+
+    results = query.all()
+    return jsonify([{
+        "id": entry.id,
+        "project_id": entry.project_id,
+        "content_type": entry.content_type,
+        "content": entry.content,
+        "created_at": entry.created_at
+    } for entry in results]), 200
+
 
 
 if __name__ == '__main__':
