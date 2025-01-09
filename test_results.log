@@ -14,11 +14,12 @@ Testing PostgreSQL...
 Testing Redis... 
 PONG
 Testing ETCD... 
-127.0.0.1:2379 is healthy: successfully committed proposal: took = 1.838023ms
+127.0.0.1:2379 is healthy: successfully committed proposal: took = 2.012989ms
 Testing MinIO... 
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0HTTP/1.1 200 OK
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+HTTP/1.1 200 OK
 Accept-Ranges: bytes
 Content-Length: 0
 Content-Security-Policy: block-all-mixed-content
@@ -26,40 +27,40 @@ Server: MinIO
 Strict-Transport-Security: max-age=31536000; includeSubDomains
 Vary: Origin
 X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-X-Amz-Request-Id: 18189B5F0CA5CAF1
+X-Amz-Request-Id: 1818E782204E5AEF
 X-Content-Type-Options: nosniff
 X-Xss-Protection: 1; mode=block
-Date: Wed, 08 Jan 2025 03:54:48 GMT
-
+Date: Thu, 09 Jan 2025 03:10:02 GMT
 
 Testing Milvus... 
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0    18    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0HTTP/1.1 404 Not Found
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0    18    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Credentials: true
 Access-Control-Allow-Headers: Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With
 Access-Control-Allow-Methods: GET, HEAD, POST, PUT, DELETE, OPTIONS, PATCH
 Access-Control-Allow-Origin: *
 Content-Type: text/plain
-Date: Wed, 08 Jan 2025 03:54:48 GMT
+Date: Thu, 09 Jan 2025 03:10:02 GMT
 Content-Length: 18
-
 
 Testing Backend... 
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0   207    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0HTTP/1.1 404 NOT FOUND
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0    21    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+HTTP/1.1 200 OK
 Server: Werkzeug/3.1.3 Python/3.9.21
-Date: Wed, 08 Jan 2025 03:54:48 GMT
-Content-Type: text/html; charset=utf-8
-Content-Length: 207
+Date: Thu, 09 Jan 2025 03:10:02 GMT
+Content-Type: application/json
+Content-Length: 21
 Connection: close
-
 
 Testing Frontend... 
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0   368    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0HTTP/1.1 200 OK
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0   368    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+HTTP/1.1 200 OK
 X-Powered-By: Express
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Methods: *
@@ -69,18 +70,16 @@ Accept-Ranges: bytes
 Content-Length: 368
 ETag: W/"170-Y32BJH3IltNoso8nDk/z3mVPxiQ"
 Vary: Accept-Encoding
-Date: Wed, 08 Jan 2025 03:54:48 GMT
+Date: Thu, 09 Jan 2025 03:10:02 GMT
 Connection: keep-alive
 Keep-Alive: timeout=5
 
-
 Container Status: 
-time="2025-01-07T20:54:49-07:00" level=warning msg="C:\\Users\\suberu\\Desktop\\enepac\\persista\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
-NAME                IMAGE                                      COMMAND                  SERVICE    CREATED             STATUS                       PORTS
-persista_backend    persista-backend                           "python app.py"          backend    6 minutes ago       Up 6 minutes                 0.0.0.0:5000->5000/tcp
-persista_etcd       quay.io/coreos/etcd:v3.5.5                 "etcd -advertise-cli…"   etcd       About an hour ago   Up About an hour (healthy)   2380/tcp, 0.0.0.0:7275->2379/tcp
-persista_frontend   persista-frontend                          "docker-entrypoint.s…"   frontend   6 minutes ago       Up 6 minutes                 0.0.0.0:4283->3000/tcp
-persista_milvus     milvusdb/milvus:v2.3.3                     "/tini -- milvus run…"   milvus     6 minutes ago       Up 6 minutes (unhealthy)     0.0.0.0:9091->9091/tcp, 0.0.0.0:19530->19530/tcp
-persista_minio      minio/minio:RELEASE.2023-03-20T20-16-18Z   "/usr/bin/docker-ent…"   minio      About an hour ago   Up About an hour (healthy)   0.0.0.0:9000-9001->9000-9001/tcp
-persista_postgres   postgres:latest                            "docker-entrypoint.s…"   postgres   About an hour ago   Up About an hour             0.0.0.0:5432->5432/tcp
-persista_redis      redis:latest                               "docker-entrypoint.s…"   redis      About an hour ago   Up About an hour             0.0.0.0:6379->6379/tcp
+NAME                IMAGE                                      COMMAND                  SERVICE    CREATED              STATUS                        PORTS
+persista_backend    persista-backend                           "python src/main.py"     backend    About a minute ago   Up 45 seconds                 0.0.0.0:5000->5000/tcp
+persista_etcd       quay.io/coreos/etcd:v3.5.5                 "etcd -advertise-cli…"   etcd       8 hours ago          Up About a minute (healthy)   2380/tcp, 0.0.0.0:7275->2379/tcp
+persista_frontend   persista-frontend                          "docker-entrypoint.s…"   frontend   About a minute ago   Up 45 seconds                 0.0.0.0:4283->3000/tcp
+persista_milvus     milvusdb/milvus:v2.3.3                     "/tini -- milvus run…"   milvus     8 hours ago          Up 45 seconds                 0.0.0.0:9091->9091/tcp, 0.0.0.0:19530->19530/tcp
+persista_minio      minio/minio:RELEASE.2023-03-20T20-16-18Z   "/usr/bin/docker-ent…"   minio      8 hours ago          Up About a minute (healthy)   0.0.0.0:9000-9001->9000-9001/tcp
+persista_postgres   postgres:latest                            "docker-entrypoint.s…"   postgres   8 hours ago          Up About a minute             0.0.0.0:5432->5432/tcp
+persista_redis      redis:latest                               "docker-entrypoint.s…"   redis      8 hours ago          Up About a minute             0.0.0.0:9625->6379/tcp
