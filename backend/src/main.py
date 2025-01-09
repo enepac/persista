@@ -1,9 +1,11 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from dotenv import load_dotenv
 import os
 import shutil
+import csv
+from io import StringIO
 
 # Load environment variables
 load_dotenv()
@@ -152,6 +154,12 @@ def search_knowledgebase():
     if 'project_id' in filters:
         query = query.filter_by(project_id=filters['project_id'])
 
+    if 'priority' in filters:
+        query = query.filter(Knowledgebase.content['metadata'].op('->>')('priority') == filters['priority'])
+
+    if 'tags' in filters:
+        query = query.filter(Knowledgebase.content['metadata'].op('->>')('tags').contains(filters['tags']))
+
     results = query.all()
     return jsonify([{
         "id": entry.id,
@@ -161,6 +169,28 @@ def search_knowledgebase():
         "created_at": entry.created_at
     } for entry in results]), 200
 
+@app.route('/knowledgebase/export', methods=['GET'])
+def export_knowledgebase():
+    format = request.args.get('format', 'json')
+    entries = Knowledgebase.query.all()
+
+    if format == 'csv':
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['ID', 'Project ID', 'Content Type', 'Content', 'Created At'])
+        for entry in entries:
+            writer.writerow([entry.id, entry.project_id, entry.content_type, entry.content, entry.created_at])
+        output.seek(0)
+        return Response(output, mimetype='text/csv', headers={"Content-Disposition": "attachment;filename=knowledgebase.csv"})
+
+    # Default JSON response
+    return jsonify([{
+        "id": entry.id,
+        "project_id": entry.project_id,
+        "content_type": entry.content_type,
+        "content": entry.content,
+        "created_at": entry.created_at
+    } for entry in entries]), 200
 
 
 if __name__ == '__main__':
