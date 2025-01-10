@@ -2,12 +2,13 @@
   "name": "persista-frontend",
   "version": "1.0.0",
   "scripts": {
-    "start": "react-scripts start"
+    "start": "cross-env PORT=8844 react-scripts start"
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "socket.io-client": "^4.8.1"
   },
   "browserslist": {
     "production": [

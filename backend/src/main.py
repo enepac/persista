@@ -11,14 +11,42 @@ import PyPDF2
 from pytesseract import image_to_string
 from PIL import Image
 import magic
+import redis
+from flask import Flask
+from flask_socketio import SocketIO, emit
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+
+@socketio.on("connect")
+def handle_connect():
+    print("WebSocket client connected")
+    emit("response_event", {"message": "Hello from the server!"})
+
+
+@socketio.on("test_event")
+def handle_test_event(data):
+    print(f"Received test_event: {data}")
+    emit("response_event", {"message": f"Server received: {data['data']}"})
+
+
+@socketio.on("disconnect")
+def handle_disconnect():
+    print("WebSocket client disconnected")
+
+
+# Initialize Redis client
+redis_client = redis.Redis(host="localhost", port=9625, decode_responses=True)
+
 
 # Load environment variables
 load_dotenv()
 
 # Retrieve the API key
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
-
-app = Flask(__name__)
 
 # Database configuration
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URI")
@@ -116,19 +144,28 @@ def get_projects():
 # Get a single project
 @app.route("/projects/<int:project_id>", methods=["GET"])
 def get_project(project_id):
+    # Check Redis cache
+    cached_project = redis_client.get(f"active_project:{project_id}")
+    if cached_project:
+        return (
+            jsonify(eval(cached_project)),
+            200,
+        )  # eval to parse the stored string back to a dictionary
+
+    # Retrieve from PostgreSQL if not in Redis
     project = Project.query.get_or_404(project_id)
-    return (
-        jsonify(
-            {
-                "id": project.id,
-                "name": project.name,
-                "created_at": project.created_at,
-                "project_data": project.project_data,
-                "additional_metadata": project.additional_metadata,
-            }
-        ),
-        200,
-    )
+    project_data = {
+        "id": project.id,
+        "name": project.name,
+        "created_at": project.created_at,
+        "project_data": project.project_data,
+        "additional_metadata": project.additional_metadata,
+    }
+
+    # Cache the project data in Redis
+    redis_client.set(f"active_project:{project_id}", str(project_data))
+
+    return jsonify(project_data), 200
 
 
 # Update a project
@@ -276,7 +313,8 @@ def export_knowledgebase():
         200,
     )
 
-#upload file
+
+# upload file
 @app.route("/projects/<int:project_id>/upload", methods=["POST"])
 def upload_file(project_id):
     project = Project.query.get_or_404(project_id)
@@ -316,7 +354,6 @@ def upload_file(project_id):
         ),
         201,
     )
-
 
 
 @app.route("/conversations", methods=["POST"])
@@ -370,23 +407,33 @@ def edit_conversation(conversation_id):
     )
 
 
+# Get all conversations
 @app.route("/conversations/<int:conversation_id>", methods=["GET"])
 def get_conversation(conversation_id):
+    # Check Redis cache
+    cached_conversation = redis_client.get(f"conversation:{conversation_id}")
+    if cached_conversation:
+        return (
+            jsonify(eval(cached_conversation)),
+            200,
+        )  # eval to parse the stored string back to a dictionary
+
+    # Retrieve from PostgreSQL if not in Redis
     conversation = Conversation.query.get_or_404(conversation_id)
-    return (
-        jsonify(
-            {
-                "conversation_id": conversation.id,
-                "project_id": conversation.project_id,
-                "original_message": conversation.original_message,
-                "updated_message": conversation.updated_message,
-                "message": conversation.message,
-                "created_at": conversation.created_at,
-                "updated_at": conversation.updated_at,
-            }
-        ),
-        200,
-    )
+    conversation_data = {
+        "conversation_id": conversation.id,
+        "project_id": conversation.project_id,
+        "original_message": conversation.original_message,
+        "updated_message": conversation.updated_message,
+        "message": conversation.message,
+        "created_at": conversation.created_at,
+        "updated_at": conversation.updated_at,
+    }
+
+    # Cache the conversation data in Redis
+    redis_client.set(f"conversation:{conversation_id}", str(conversation_data))
+
+    return jsonify(conversation_data), 200
 
 
 def generate_ai_response(project_id, user_message):
@@ -451,7 +498,6 @@ def get_contextual_suggestions(project_id):
         200,
     )
 
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
-
-
+    socketio.run(app, debug=True, port=5000)
