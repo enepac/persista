@@ -498,6 +498,12 @@ def get_contextual_suggestions(project_id):
         200,
     )
 
+@app.route("/projects/update", methods=["POST"])
+def update_projects():
+    socketio.emit("project_update", {"message": "Projects have been updated!"})
+    print("Emitted project_update event")
+    return jsonify({"status": "Update broadcast sent"}), 200
+
 
 if __name__ == "__main__":
     socketio.run(app, debug=True, port=5000)
